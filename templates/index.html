@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0"
+    />
+    <title>Universal Website Scraper</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔍</text></svg>"
+    />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          "Helvetica Neue", Arial, sans-serif;
+        line-height: 1.6;
+        color: #333;
+        background: #f5f5f5;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+
+      header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 40px 20px;
+        text-align: center;
+        margin-bottom: 40px;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      h1 {
+        font-size: 2.5em;
+        margin-bottom: 10px;
+      }
+
+      .subtitle {
+        font-size: 1.1em;
+        opacity: 0.95;
+      }
+
+      .scraper-form {
+        background: white;
+        padding: 30px;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        margin-bottom: 30px;
+      }
+
+      .form-group {
+        margin-bottom: 20px;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: #555;
+      }
+
+      input[type="url"] {
+        width: 100%;
+        padding: 12px 16px;
+        font-size: 16px;
+        border: 2px solid #ddd;
+        border-radius: 6px;
+        transition: border-color 0.3s;
+      }
+
+      input[type="url"]:focus {
+        outline: none;
+        border-color: #667eea;
+      }
+
+      button {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 12px 32px;
+        font-size: 16px;
+        font-weight: 600;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: transform 0.2s, box-shadow 0.2s;
+      }
+
+      button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+      }
+
+      button:active {
+        transform: translateY(0);
+      }
+
+      button:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      .loading {
+        display: none;
+        text-align: center;
+        padding: 20px;
+        color: #667eea;
+        font-weight: 600;
+      }
+
+      .loading.active {
+        display: block;
+      }
+
+      .spinner {
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #667eea;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 10px;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      .error {
+        display: none;
+        background: #fee;
+        color: #c33;
+        padding: 15px;
+        border-radius: 6px;
+        margin-bottom: 20px;
+        border-left: 4px solid #c33;
+      }
+
+      .error.active {
+        display: block;
+      }
+
+      .results {
+        display: none;
+        background: white;
+        padding: 30px;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      }
+
+      .results.active {
+        display: block;
+      }
+
+      .results-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid #eee;
+      }
+
+      .results-title {
+        font-size: 1.5em;
+        color: #333;
+      }
+
+      .download-btn {
+        background: #28a745;
+        padding: 10px 24px;
+        font-size: 14px;
+      }
+
+      .download-btn:hover {
+        box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4);
+      }
+
+      .meta-info {
+        background: #f9f9f9;
+        padding: 20px;
+        border-radius: 6px;
+        margin-bottom: 30px;
+      }
+
+      .meta-info h3 {
+        margin-bottom: 15px;
+        color: #667eea;
+      }
+
+      .meta-row {
+        margin-bottom: 10px;
+      }
+
+      .meta-label {
+        font-weight: 600;
+        color: #555;
+        margin-right: 8px;
+      }
+
+      .sections-container {
+        margin-top: 30px;
+      }
+
+      .section-item {
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        margin-bottom: 15px;
+        overflow: hidden;
+        transition: box-shadow 0.3s;
+      }
+
+      .section-item:hover {
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      }
+
+      .section-header {
+        background: #f9f9f9;
+        padding: 15px 20px;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        user-select: none;
+      }
+
+      .section-header:hover {
+        background: #f0f0f0;
+      }
+
+      .section-title {
+        font-weight: 600;
+        color: #333;
+      }
+
+      .section-type {
+        display: inline-block;
+        background: #667eea;
+        color: white;
+        padding: 4px 12px;
+        border-radius: 12px;
+        font-size: 12px;
+        margin-left: 10px;
+      }
+
+      .section-toggle {
+        font-size: 20px;
+        color: #999;
+      }
+
+      .section-content {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease;
+      }
+
+      .section-content.expanded {
+        max-height: 5000px;
+      }
+
+      .section-body {
+        padding: 20px;
+      }
+
+      .json-viewer {
+        background: #2d2d2d;
+        color: #f8f8f2;
+        padding: 20px;
+        border-radius: 6px;
+        overflow-x: auto;
+        font-family: "Courier New", Courier, monospace;
+        font-size: 13px;
+        line-height: 1.5;
+      }
+
+      .json-key {
+        color: #66d9ef;
+      }
+
+      .json-string {
+        color: #a6e22e;
+      }
+
+      .json-number {
+        color: #ae81ff;
+      }
+
+      .json-boolean {
+        color: #fd971f;
+      }
+
+      .json-null {
+        color: #f92672;
+      }
+
+      .interactions-info {
+        background: #e8f4f8;
+        padding: 15px;
+        border-radius: 6px;
+        margin-bottom: 20px;
+      }
+
+      .interactions-info h4 {
+        margin-bottom: 10px;
+        color: #0288d1;
+      }
+
+      .badge {
+        display: inline-block;
+        background: #0288d1;
+        color: white;
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 12px;
+        margin-right: 8px;
+        margin-bottom: 5px;
+      }
+
+      footer {
+        text-align: center;
+        padding: 40px 20px;
+        color: #999;
+        font-size: 14px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>Universal Website Scraper</h1>
+        <p class="subtitle">
+          Extract structured data from any website with static and JavaScript
+          rendering
+        </p>
+      </header>
+
+      <div class="scraper-form">
+        <form id="scrapeForm">
+          <div class="form-group">
+            <label for="url">Website URL</label>
+            <input
+              type="url"
+              id="url"
+              name="url"
+              placeholder="https://example.com"
+              required
+            />
+          </div>
+          <button
+            type="submit"
+            id="scrapeBtn"
+          >
+            Scrape Website
+          </button>
+        </form>
+      </div>
+
+      <div
+        class="loading"
+        id="loading"
+      >
+        <div class="spinner"></div>
+        <p>Scraping website... This may take a few seconds</p>
+      </div>
+
+      <div
+        class="error"
+        id="error"
+      ></div>
+
+      <div
+        class="results"
+        id="results"
+      >
+        <div class="results-header">
+          <h2 class="results-title">Scraping Results</h2>
+          <button
+            class="download-btn"
+            id="downloadBtn"
+          >
+            Download JSON
+          </button>
+        </div>
+
+        <div id="resultContent"></div>
+      </div>
+    </div>
+
+    <footer>
+      <p>Universal Website Scraper MVP &copy; 2025</p>
+    </footer>
+
+    <script>
+      let currentResult = null;
+
+      document
+        .getElementById("scrapeForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+
+          const url = document.getElementById("url").value;
+          const loadingEl = document.getElementById("loading");
+          const errorEl = document.getElementById("error");
+          const resultsEl = document.getElementById("results");
+          const scrapeBtn = document.getElementById("scrapeBtn");
+
+          loadingEl.classList.add("active");
+          errorEl.classList.remove("active");
+          resultsEl.classList.remove("active");
+          scrapeBtn.disabled = true;
+
+          try {
+            const response = await fetch("/scrape", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ url: url }),
+            });
+
+            if (!response.ok) {
+              const errorData = await response.json();
+              throw new Error(errorData.detail || "Scraping failed");
+            }
+
+            const data = await response.json();
+            currentResult = data.result;
+
+            displayResults(currentResult);
+            resultsEl.classList.add("active");
+          } catch (error) {
+            errorEl.textContent = error.message;
+            errorEl.classList.add("active");
+          } finally {
+            loadingEl.classList.remove("active");
+            scrapeBtn.disabled = false;
+          }
+        });
+
+      document.getElementById("downloadBtn").addEventListener("click", () => {
+        if (!currentResult) return;
+
+        const dataStr = JSON.stringify(currentResult, null, 2);
+        const dataBlob = new Blob([dataStr], { type: "application/json" });
+        const url = URL.createObjectURL(dataBlob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `scrape-${Date.now()}.json`;
+        link.click();
+        URL.revokeObjectURL(url);
+      });
+
+      function displayResults(result) {
+        const container = document.getElementById("resultContent");
+
+        let html = `
+                <div class="meta-info">
+                    <h3>Page Metadata</h3>
+                    <div class="meta-row">
+                        <span class="meta-label">URL:</span>
+                        <span>${escapeHtml(result.url)}</span>
+                    </div>
+                    <div class="meta-row">
+                        <span class="meta-label">Title:</span>
+                        <span>${escapeHtml(result.meta.title)}</span>
+                    </div>
+                    <div class="meta-row">
+                        <span class="meta-label">Description:</span>
+                        <span>${escapeHtml(result.meta.description)}</span>
+                    </div>
+                    <div class="meta-row">
+                        <span class="meta-label">Language:</span>
+                        <span>${escapeHtml(result.meta.language)}</span>
+                    </div>
+                    <div class="meta-row">
+                        <span class="meta-label">Scraped At:</span>
+                        <span>${escapeHtml(result.scrapedAt)}</span>
+                    </div>
+                </div>
+            `;
+
+        if (result.interactions) {
+          const hasInteractions =
+            result.interactions.clicks.length > 0 ||
+            result.interactions.scrolls > 0 ||
+            result.interactions.pages.length > 0;
+
+          html += `
+                    <div class="interactions-info">
+                        <h4>Interactions ${
+                          hasInteractions ? "Performed" : "(None)"
+                        }</h4>
+                        ${
+                          result.interactions.clicks.length > 0
+                            ? `
+                            <div>
+                                <strong>Clicks:</strong>
+                                ${result.interactions.clicks
+                                  .map(
+                                    (c) =>
+                                      `<span class="badge">${escapeHtml(
+                                        c
+                                      )}</span>`
+                                  )
+                                  .join("")}
+                            </div>
+                        `
+                            : "<div><strong>Clicks:</strong> 0</div>"
+                        }
+                        <div><strong>Scrolls:</strong> ${
+                          result.interactions.scrolls || 0
+                        }</div>
+                        ${
+                          result.interactions.pages.length > 0
+                            ? `
+                            <div><strong>Pages Visited:</strong> ${result.interactions.pages.length}</div>
+                        `
+                            : "<div><strong>Pages Visited:</strong> 0</div>"
+                        }
+                    </div>
+                `;
+        }
+
+        if (result.errors && result.errors.length > 0) {
+          html += `
+                    <div class="error" style="display: block; margin-top: 20px;">
+                        <strong>Errors encountered:</strong><br>
+                        ${result.errors
+                          .map(
+                            (e) =>
+                              `• ${escapeHtml(e.phase)}: ${escapeHtml(
+                                e.message
+                              )}`
+                          )
+                          .join("<br>")}
+                    </div>
+                `;
+        }
+
+        html += `<div class="sections-container"><h3>Sections (${result.sections.length})</h3>`;
+
+        result.sections.forEach((section, index) => {
+          html += `
+                    <div class="section-item">
+                        <div class="section-header" onclick="toggleSection(${index})">
+                            <div>
+                                <span class="section-title">${escapeHtml(
+                                  section.label
+                                )}</span>
+                                <span class="section-type">${escapeHtml(
+                                  section.type
+                                )}</span>
+                            </div>
+                            <span class="section-toggle" id="toggle-${index}">▼</span>
+                        </div>
+                        <div class="section-content" id="content-${index}">
+                            <div class="section-body">
+                                <pre class="json-viewer">${syntaxHighlight(
+                                  JSON.stringify(section, null, 2)
+                                )}</pre>
+                            </div>
+                        </div>
+                    </div>
+                `;
+        });
+
+        html += `</div>`;
+
+        container.innerHTML = html;
+      }
+
+      function toggleSection(index) {
+        const content = document.getElementById(`content-${index}`);
+        const toggle = document.getElementById(`toggle-${index}`);
+
+        content.classList.toggle("expanded");
+        toggle.textContent = content.classList.contains("expanded") ? "▲" : "▼";
+      }
+
+      function escapeHtml(text) {
+        const div = document.createElement("div");
+        div.textContent = text;
+        return div.innerHTML;
+      }
+
+      function syntaxHighlight(json) {
+        json = json
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;");
+        return json.replace(
+          /("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g,
+          function (match) {
+            let cls = "json-number";
+            if (/^"/.test(match)) {
+              if (/:$/.test(match)) {
+                cls = "json-key";
+              } else {
+                cls = "json-string";
+              }
+            } else if (/true|false/.test(match)) {
+              cls = "json-boolean";
+            } else if (/null/.test(match)) {
+              cls = "json-null";
+            }
+            return '<span class="' + cls + '">' + match + "</span>";
+          }
+        );
+      }
+    </script>
+  </body>
+</html>
