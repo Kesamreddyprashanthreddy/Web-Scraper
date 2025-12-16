@@ -135,6 +135,3 @@ https://github.com/trending
 └── capabilities.json     # Feature flags
 ```
 
-## License
-
-MIT
